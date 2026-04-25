@@ -33,6 +33,7 @@ except Exception:
 DEFAULT_ENV_URL = "https://guuru-dev-traffic-signal-openenv-2.hf.space"
 ENV_URL = DEFAULT_ENV_URL
 MODEL_NAME = "unsloth/Llama-3.2-1B-Instruct"
+GLOBAL_EPISODE = 0
 
 
 def find_local_env_port() -> str:
@@ -99,10 +100,14 @@ def parse_action(completion: str) -> tuple[dict[str, Any], bool]:
 # 4. total_priority_budget constraint prevents all-boost exploitation
 # 5. Episode-level final_score prevents short-term gaming
 def reward_fn(prompts, completions, **kwargs):  # type: ignore[no-untyped-def]
+    global GLOBAL_EPISODE
+
     rewards: list[float] = []
     use_wandb = kwargs.get("use_wandb", False)
 
-    for episode, (_, completion) in enumerate(zip(prompts, completions), start=1):
+    for _, completion in zip(prompts, completions):
+        GLOBAL_EPISODE += 1
+        episode = GLOBAL_EPISODE
         task_id = "medium_dynamic" if episode < 20 else kwargs.get("task_id", "hard_multi")
         safe_post(
             f"{ENV_URL}/reset",
@@ -139,6 +144,9 @@ def reward_fn(prompts, completions, **kwargs):  # type: ignore[no-untyped-def]
 
         if is_hallucinated:
             episode_reward -= 5.0
+
+        if all(v == "KEEP" for v in action["local_actions"].values()):
+            episode_reward -= 2.0
 
         log_data = {
             "episode_reward": episode_reward,
@@ -256,7 +264,7 @@ def train(args: argparse.Namespace) -> None:
         num_train_epochs=2,
         max_steps=min(args.max_steps, 80),
         max_prompt_length=512,
-        max_completion_length=64,
+        max_completion_length=32,
         num_generations=4,
         bf16=use_bf16,
         fp16=use_fp16,
