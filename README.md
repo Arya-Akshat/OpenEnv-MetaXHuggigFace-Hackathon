@@ -67,7 +67,16 @@ Through our **11-Phase Refactor**, we achieved a massive performance gap demonst
 - **Medium Task Improvement**: **+23%**.
 - **Recovery Efficiency**: The system recovers from incidents (lane closures) 40% faster under central guidance.
 
-*(Training curve — to be generated onsite (April 25–26) using HF A100/H100 compute credits. Plotting pipeline already integrated.)*
+### Final Training Artifacts
+The final training flow uses a two-stage pipeline:
+- **SFT schema warmup** to teach strict JSON action formatting.
+- **Gated GRPO environment tuning** to optimize traffic-control behavior only after schema validation passes.
+
+Generated artifacts are available in the live Space repository:
+- **LoRA adapter**: [`outputs/traffic-lora`](https://huggingface.co/spaces/Guuru-DEV/traffic-signal-openenv-2/tree/main/outputs/traffic-lora)
+- **Training plots**: [`plots`](https://huggingface.co/spaces/Guuru-DEV/traffic-signal-openenv-2/tree/main/plots)
+
+Generated plots include `ablation_comparison.png`, `reward_breakdown.png`, `final_score_curve.png`, and `reward_curve.png`.
 
 ---
 
@@ -91,14 +100,18 @@ docker run --rm -p 7860:7860 traffic-env
 ### Local CLI
 ```bash
 # Reset with specific task
-curl -X POST http://localhost:7860/reset -json '{"task_id": "hard_multi"}'
+curl -X POST http://localhost:7860/reset \
+  -H "Content-Type: application/json" \
+  -d '{"task_id": "hard_multi"}'
 
 # Execute step
-curl -X POST http://localhost:7860/step -json '{"action": "PHASE_0"}'
+curl -X POST http://localhost:7860/step \
+  -H "Content-Type: application/json" \
+  -d '{"action": "PHASE_0"}'
 ```
 
 ### Training
-Check out `training/train.py` for a Colab-ready Unsloth fine-tuning script.
+Use `notebooks/train_colab_FULL.ipynb` for the full SFT + GRPO run, or `training/train.py` for the script-based training entrypoint.
 
 ---
 
