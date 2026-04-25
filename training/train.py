@@ -32,7 +32,7 @@ except Exception:
 
 DEFAULT_ENV_URL = "https://guuru-dev-traffic-signal-openenv-2.hf.space"
 ENV_URL = DEFAULT_ENV_URL
-MODEL_NAME = "unsloth/Llama-3.2-3B-Instruct"
+MODEL_NAME = "unsloth/Llama-3.2-1B-Instruct"
 
 
 def find_local_env_port() -> str:
