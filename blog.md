@@ -40,6 +40,6 @@ Links:
 
 - Live environment Space: https://guuru-dev-traffic-signal-openenv-2.hf.space
 - Space repository and artifacts: https://huggingface.co/spaces/Guuru-DEV/traffic-signal-openenv-2
-- GitHub repository: https://github.com/Arya-Akshat/OpenEnv-MetaXHuggigFace-Hackathon
+- GitHub repository: [OpenEnv-MetaXHuggingFace-Hackathon](https://github.com/Arya-Akshat/OpenEnv-MetaXHuggigFace-Hackathon)
 - Training notebook: `notebooks/train_colab_FULL.ipynb`
 - Run log: `results/run_log.md`
