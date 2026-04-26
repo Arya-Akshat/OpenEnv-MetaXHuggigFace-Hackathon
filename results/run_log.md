@@ -7,7 +7,7 @@ This file tracks real training attempts and generated evidence for the hackathon
 - Environment: Hugging Face Space `Guuru-DEV/traffic-signal-openenv-2`
 - Model family: `unsloth/Llama-3.2-1B-Instruct`
 - Training stack: SFT schema warmup + central-policy policy optimization
-- Monitoring: Weights & Biases project `traffic-signal-openenv`
+- Monitoring: Weights & Biases project [`traffic-signal-openenv`](https://wandb.ai/akshat-arya13-r-v-c-e/traffic-signal-openenv) (all synced runs; filter by run name, e.g. `openenv-a100-central-policy-1b-*`)
 - Local plots committed in `plots/`
 - Large adapter artifacts are stored on the Hugging Face Space, not in Git.
 
@@ -50,7 +50,7 @@ This file tracks real training attempts and generated evidence for the hackathon
 
 - Status: completed and uploaded.
 - Hardware: Hugging Face A100 JupyterLab Space.
-- Run name: `openenv-a100-central-policy-1b-1777183675`.
+- Run name: `openenv-a100-central-policy-1b-1777183675` (find it in the [W&B project](https://wandb.ai/akshat-arya13-r-v-c-e/traffic-signal-openenv) runs table).
 - Reason for stable path: the A100 runtime exposed Unsloth/TRL dtype and optional dependency incompatibilities, so the final run used standard Transformers + PEFT LoRA, manual SFT warmup, and a manual GRPO-style policy optimization loop.
 - Episodes recorded: `264`.
 - Mean reward: `1.2351`.

@@ -38,6 +38,7 @@ The fun part is that the model did not win by talking more. It won by learning t
 
 Links:
 
+- Weights & Biases (training runs and metrics): https://wandb.ai/akshat-arya13-r-v-c-e/traffic-signal-openenv
 - Live environment Space: https://guuru-dev-traffic-signal-openenv-2.hf.space
 - Space repository and artifacts: https://huggingface.co/spaces/Guuru-DEV/traffic-signal-openenv-2
 - GitHub repository: [OpenEnv-MetaXHuggingFace-Hackathon](https://github.com/Arya-Akshat/OpenEnv-MetaXHuggigFace-Hackathon)

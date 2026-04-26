@@ -25,7 +25,7 @@ Traffic Signal OpenEnv is a high-fidelity, hierarchical traffic-light orchestrat
 - **Canonical training notebook**: [`notebooks/train_colab_FULL.ipynb`](notebooks/train_colab_FULL.ipynb)
 - **Writeup**: [`blog.md`](blog.md) — Explains our methodology and core design decisions.
 - **Run log**: [`results/run_log.md`](results/run_log.md) — Summarizes A100 training runs, metrics, and diagnostics.
-- **W&B project**: [traffic-signal-openenv](https://wandb.ai/akshat-arya13-r-v-c-e/traffic-signal-openenv)
+- **Weights & Biases (live training metrics)**: [wandb.ai/.../traffic-signal-openenv](https://wandb.ai/akshat-arya13-r-v-c-e/traffic-signal-openenv) — notebook runs with `WANDB_API_KEY` sync here (episodes, rewards, loss, artifacts).
 
 ---
 
@@ -96,7 +96,7 @@ Generated artifacts are available in the live Space repository:
 - **A100 LoRA adapter**: [`outputs/traffic-lora-a100-central-policy`](https://huggingface.co/spaces/Guuru-DEV/traffic-signal-openenv-2/tree/main/outputs/traffic-lora-a100-central-policy)
 - **Training plots**: [`plots`](https://huggingface.co/spaces/Guuru-DEV/traffic-signal-openenv-2/tree/main/plots)
 - **Training metrics**: [`results`](https://huggingface.co/spaces/Guuru-DEV/traffic-signal-openenv-2/tree/main/results)
-- **W&B project**: [traffic-signal-openenv](https://wandb.ai/akshat-arya13-r-v-c-e/traffic-signal-openenv)
+- **Weights & Biases**: [traffic-signal-openenv](https://wandb.ai/akshat-arya13-r-v-c-e/traffic-signal-openenv) (same project as Submission Links)
 - **Run log**: [`results/run_log.md`](results/run_log.md)
 
 Generated plots include the final A100 central-policy run (`a100_central_policy_reward_curve.png`, `a100_central_policy_final_score_curve.png`, `a100_central_policy_output_quality.png`), the Kaggle central-policy run, the ablation comparison, and earlier reward/score diagnostics.
