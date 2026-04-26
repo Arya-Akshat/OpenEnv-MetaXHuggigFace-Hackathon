@@ -72,18 +72,24 @@ Through our **11-Phase Refactor**, we achieved a massive performance gap demonst
 ### Final Training Artifacts
 The final training flow uses a two-stage pipeline:
 - **SFT schema warmup** to teach strict JSON action formatting.
-- **Gated GRPO environment tuning** to optimize traffic-control behavior only after schema validation passes.
+- **Central-policy policy optimization** to tune traffic-control actions only after schema validation passes.
+
+The final A100 run used standard Transformers + PEFT LoRA after the A100 runtime exposed Unsloth/TRL compatibility issues. It recorded 264 episodes with **99.62% valid JSON actions**, **99.62% central-action usage**, **0.38% hallucination rate**, **1.506 last-50 mean reward**, and a **0.51797 best final score**.
 
 Generated artifacts are available in the live Space repository:
-- **LoRA adapter**: [`outputs/traffic-lora`](https://huggingface.co/spaces/Guuru-DEV/traffic-signal-openenv-2/tree/main/outputs/traffic-lora)
+- **A100 LoRA adapter**: [`outputs/traffic-lora-a100-central-policy`](https://huggingface.co/spaces/Guuru-DEV/traffic-signal-openenv-2/tree/main/outputs/traffic-lora-a100-central-policy)
 - **Training plots**: [`plots`](https://huggingface.co/spaces/Guuru-DEV/traffic-signal-openenv-2/tree/main/plots)
 - **Training metrics**: [`results`](https://huggingface.co/spaces/Guuru-DEV/traffic-signal-openenv-2/tree/main/results)
 - **W&B project**: [traffic-signal-openenv](https://wandb.ai/akshat-arya13-r-v-c-e/traffic-signal-openenv)
 - **Run log**: [`results/run_log.md`](results/run_log.md)
 
-Generated plots include the central-policy run (`central_policy_reward_curve.png`, `central_policy_final_score_curve.png`, `central_policy_output_quality.png`), the ablation comparison, and earlier reward/score diagnostics.
+Generated plots include the final A100 central-policy run (`a100_central_policy_reward_curve.png`, `a100_central_policy_final_score_curve.png`, `a100_central_policy_output_quality.png`), the Kaggle central-policy run, the ablation comparison, and earlier reward/score diagnostics.
 
 ![Training reward curve](plots/reward_curve.png)
+
+![A100 central-policy reward curve](plots/a100_central_policy_reward_curve.png)
+
+![A100 central-policy final score](plots/a100_central_policy_final_score_curve.png)
 
 ![Central-policy GRPO reward curve](plots/central_policy_reward_curve.png)
 

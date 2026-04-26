@@ -6,7 +6,7 @@ This file tracks real training attempts and generated evidence for the hackathon
 
 - Environment: Hugging Face Space `Guuru-DEV/traffic-signal-openenv-2`
 - Model family: `unsloth/Llama-3.2-1B-Instruct`
-- Training stack: Unsloth + Hugging Face TRL
+- Training stack: SFT schema warmup + central-policy policy optimization
 - Monitoring: Weights & Biases project `traffic-signal-openenv`
 - Local plots committed in `plots/`
 - Large adapter artifacts are stored on the Hugging Face Space, not in Git.
@@ -46,14 +46,26 @@ This file tracks real training attempts and generated evidence for the hackathon
   - reward was non-flat and often positive later in the run,
   - hard-task final score did not yet beat the hard baseline reliably on the 1B run.
 
-### Planned A100 Run
+### A100 Manual GRPO Central-Policy Run
 
-- Status: pending.
-- Goal: run the same central-policy pipeline on a larger model using an A100-backed Hugging Face Job.
-- Success criteria:
-  - high schema-valid completion rate,
-  - non-flat reward distribution,
-  - improved hard-task `final_score`,
-  - readable plots saved in `plots/`,
-  - metrics saved in `results/`,
-  - adapter uploaded to Hugging Face Hub/Space, not committed to Git.
+- Status: completed and uploaded.
+- Hardware: Hugging Face A100 JupyterLab Space.
+- Run name: `openenv-a100-central-policy-1b-1777183675`.
+- Reason for stable path: the A100 runtime exposed Unsloth/TRL dtype and optional dependency incompatibilities, so the final run used standard Transformers + PEFT LoRA, manual SFT warmup, and a manual GRPO-style policy optimization loop.
+- Episodes recorded: `264`.
+- Mean reward: `1.2351`.
+- Last-50 mean reward: `1.5061`.
+- Best reward: `3.9701`.
+- Valid action rate: `99.62%`.
+- Central-action rate: `99.62%`.
+- Hallucination rate: `0.38%`.
+- Mean final score: `0.4750`.
+- Best final score: `0.51797`.
+- Generated evidence:
+  - `plots/a100_central_policy_reward_curve.png`
+  - `plots/a100_central_policy_final_score_curve.png`
+  - `plots/a100_central_policy_output_quality.png`
+  - `results/summary_a100_central_policy.json`
+  - `results/training_metrics_a100_central_policy.json`
+  - `results/training_metrics_a100_central_policy.csv`
+- Adapter uploaded to the Space at `outputs/traffic-lora-a100-central-policy`.

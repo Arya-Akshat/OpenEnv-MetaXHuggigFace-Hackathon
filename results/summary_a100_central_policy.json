@@ -1,0 +1,13 @@
+{
+  "run_tag": "a100_manual_grpo_central_policy",
+  "wandb_run_name": "openenv-a100-central-policy-1b-1777183675",
+  "episodes": 264,
+  "mean_reward": 1.2350887924276952,
+  "last_50_mean_reward": 1.5060542322099326,
+  "best_reward": 3.970072859751057,
+  "valid_rate": 0.9962121212121212,
+  "central_rate": 0.9962121212121212,
+  "hallucination_rate": 0.003787878787878788,
+  "mean_final_score": 0.475027205323194,
+  "best_final_score": 0.51797
+}
