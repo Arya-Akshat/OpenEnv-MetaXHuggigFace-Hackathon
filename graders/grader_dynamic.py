@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from graders.common import grade as _common_grade
+from tasks.task_dynamic import dynamic_grader
 
 
 def grade(metrics: dict) -> float:
     try:
-        score = _common_grade(metrics)
+        score = dynamic_grader(metrics)
     except Exception:
         score = 0.5
 

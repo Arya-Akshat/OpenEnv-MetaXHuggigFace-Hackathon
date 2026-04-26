@@ -8,12 +8,31 @@ reward_range: [-1.0, 1.0]
 
 observation_space:
   type: dict
+  description: Per-intersection observations keyed by intersection ID (NW, NE, SW, SE)
   spaces:
-    queue_lengths: {type: Box, low: 0, high: 24, shape: [4, 4]}
-    waiting_times: {type: Box, low: 0, high: 1000, shape: [4, 4]}
-    current_phase: {type: Discrete, n: 4}
-    time_in_phase: {type: Discrete, n: 100}
-    central_enabled: {type: Discrete, n: 2}
+    queue_lengths:
+      type: dict
+      description: "Queue lengths per intersection: {NW: [4 floats], NE: [...], SW: [...], SE: [...]}"
+      values: {type: Box, low: 0, high: 24, shape: [4]}
+    waiting_times:
+      type: dict
+      description: "Waiting times per intersection: {NW: [4 floats], ...}"
+      values: {type: Box, low: 0, high: 1000, shape: [4]}
+    current_phase:
+      type: dict
+      description: "Current signal phase per intersection: {NW: int, ...}"
+      values: {type: Discrete, n: 4}
+    time_in_phase:
+      type: dict
+      description: "Steps in current phase per intersection: {NW: int, ...}"
+      values: {type: Discrete, n: 100}
+    policy:
+      type: dict
+      description: "Central policy vector (5 floats)"
+      values: {type: Box, low: 0, high: 6, shape: [5]}
+    text_obs:
+      type: Text
+      description: "Structured YAML-like observation designed for LLM ingestion"
 
 action_space:
   type: dict

@@ -11,7 +11,7 @@ pinned: false
 # Traffic Signal OpenEnv: Hierarchical Urban Orchestration
 
 > **TL;DR:** We built a deterministic, controllable benchmark testing whether LLMs can act as real-time, city-scale coordinators across multiple interacting agents.  
-> **Result:** +36.2% score improvement, +122% throughput, and 15% fewer spillback events vs. decentralized control.
+> **Result:** +34.2% score improvement, +122% throughput, and 15% fewer spillback events vs. decentralized control.
 
 ## Submission Links
 
@@ -138,7 +138,9 @@ Without central policy, the same agent scores 0.386 with ~2x more spillback.
 
 ### Training Evidence
 
-The final A100 run used `unsloth/Llama-3.2-1B-Instruct` with PEFT LoRA and a manual GRPO-style policy optimization loop over **264 episodes**:
+The final A100 run used `unsloth/Llama-3.2-1B-Instruct` with PEFT LoRA and a manual GRPO-style policy optimization loop over **264 episodes**.
+
+> **Note:** Training episodes use 30-step rollouts (`MAX_ENV_STEPS=30`) for compute efficiency on A100. Baseline comparison scores above are from full 200-step episodes. The 30-step training signal captures early-episode behavior and policy responsiveness; final scores from short rollouts correlate with but slightly differ from full-episode scores.
 
 | Metric | Value |
 |:---|:---|
@@ -159,7 +161,7 @@ The final A100 run used `unsloth/Llama-3.2-1B-Instruct` with PEFT LoRA and a man
 
 ![Central coordination ablation](plots/ablation_comparison.png)
 
-*Ablation confirms central coordination is the dominant factor in throughput improvement.*
+*Ablation: compares final score (y-axis) across control strategies (x-axis). Central coordination (+31.9% over local-only) is the dominant factor; trained LLM adds a further +1.8% on top.*
 
 <details>
 <summary>Additional training plots (Kaggle runs)</summary>

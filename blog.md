@@ -51,7 +51,7 @@ The stable recipe that actually worked:
 
 ## What We Got
 
-The final A100 run recorded **264 environment episodes** against the live Space:
+The final A100 run recorded **264 environment episodes** against the live Space. Training used 30-step rollouts (`MAX_ENV_STEPS=30`) for compute efficiency; the baseline comparison table below uses full 200-step episodes.
 
 | Metric | Value |
 |:---|:---|
