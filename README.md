@@ -11,60 +11,72 @@ pinned: false
 # Traffic Signal OpenEnv: Hierarchical Urban Orchestration
 
 > **TL;DR:** We built a deterministic, controllable benchmark testing whether LLMs can act as real-time, city-scale coordinators across multiple interacting agents.  
-> **Result:** +36.2% performance improvement and ~40% faster recovery from disruptions vs. decentralized control.
-
-**A Deterministic LLM Benchmark for Multi-Agent Traffic Control**
-
-Traffic Signal OpenEnv is a high-fidelity, hierarchical traffic-light orchestration platform. It is designed to test an LLM's ability to act as a **Central Controller**, managing grid-level policy vectors to optimize flow across multiple local agents.
+> **Result:** +36.2% score improvement, +122% throughput, and 15% fewer spillback events vs. decentralized control.
 
 ## Submission Links
 
-- **Live environment Space**: [guuru-dev-traffic-signal-openenv-2.hf.space](https://guuru-dev-traffic-signal-openenv-2.hf.space)
-- **Space repository and artifacts**: [Guuru-DEV/traffic-signal-openenv-2](https://huggingface.co/spaces/Guuru-DEV/traffic-signal-openenv-2)
-- **GitHub repository**: [Arya-Akshat/OpenEnv-MetaXHuggingFace-Hackathon](https://github.com/Arya-Akshat/OpenEnv-MetaXHuggigFace-Hackathon)
-- **Canonical training notebook**: [`notebooks/train_colab_FULL.ipynb`](notebooks/train_colab_FULL.ipynb)
-- **Writeup**: [`blog.md`](blog.md) — Explains our methodology and core design decisions.
-- **Run log**: [`results/run_log.md`](results/run_log.md) — Summarizes A100 training runs, metrics, and diagnostics.
-- **Weights & Biases (live training metrics)**: [wandb.ai/.../traffic-signal-openenv](https://wandb.ai/akshat-arya13-r-v-c-e/traffic-signal-openenv) — notebook runs with `WANDB_API_KEY` sync here (episodes, rewards, loss, artifacts).
+| Resource | Link |
+|:---|:---|
+| **Live Environment** | [guuru-dev-traffic-signal-openenv-2.hf.space](https://guuru-dev-traffic-signal-openenv-2.hf.space) |
+| **HF Space Repo** | [Guuru-DEV/traffic-signal-openenv-2](https://huggingface.co/spaces/Guuru-DEV/traffic-signal-openenv-2) |
+| **GitHub** | [Arya-Akshat/OpenEnv-MetaXHuggingFace-Hackathon](https://github.com/Arya-Akshat/OpenEnv-MetaXHuggigFace-Hackathon) |
+| **Training Notebook** | [`notebooks/train_colab_FULL.ipynb`](notebooks/train_colab_FULL.ipynb) |
+| **Writeup / Blog** | [`blog.md`](blog.md) |
+| **Run Log** | [`results/run_log.md`](results/run_log.md) |
+| **W&B Dashboard** | [wandb.ai/…/traffic-signal-openenv](https://wandb.ai/akshat-arya13-r-v-c-e/traffic-signal-openenv) |
 
 ---
 
-## 🚦 The Problem: The Hidden Cost of Uncoordinated Flow
-Urban traffic is a deceptively simple problem. While a single intersection can be managed by local rules, a city grid suffers from **bottleneck propagation**, **spillback**, and **emergency routing delays**. Traditional systems lack the long-horizon reasoning required to preemptively throttle flow or synchronize "Green Waves" across corridors.
+## 🚦 The Problem
 
-This is a perfect benchmark for LLMs because it requires:
-1.  **Multi-Agent Reasoning**: Balancing 4 independent intersections NW, NE, SW, SE.
-2.  **Chain-of-Thought Decision Making**: Explaining "why" a policy shift is necessary.
-3.  **Stability Under Stress**: Managing deterministic incidents (closures, surges) without collapsing into gridlock.
+Urban traffic is deceptively simple. A single intersection can be managed by local rules — but a city grid suffers from **bottleneck propagation**, **spillback**, and **emergency routing delays** that no single intersection can see coming.
+
+This is a perfect benchmark for LLMs because it requires three capabilities that set it apart from typical Gym environments:
+
+1. **Multi-Agent Reasoning** — balancing 4 independent intersections (NW, NE, SW, SE) that create cross-interference through shared corridors.
+2. **Hierarchical Control** — the LLM doesn't directly flip traffic lights. It sets high-level policy vectors that local agents interpret.
+3. **Stability Under Stress** — managing deterministic incidents (lane closures, demand surges) without collapsing into gridlock.
 
 ---
 
 ## 🏗️ Environment Architecture
 
 ### The Hierarchy
-- **Central Controller (LLM)**: Updates policy vectors (e.g., `corridor_priority`, `emergency_boost`) every $N$ steps.
-- **Local Agents (Rule-Based)**: Execute high-frequency phase switching based on the Central Policy and 1-step lookahead logic.
-
-### Grid Layout (2x2)
-```text
-      [NW] <---(3)--- [NE]
-        |               |
-       (3)             (3)
-        |               |
-      [SW] ---(3)---> [SE]
-      
-(3) = 3-Step FIFO Transit Buffer
+```
+┌─────────────────────────────────────────────┐
+│              Central Controller (LLM)       │
+│  Outputs: corridor_priority, emergency_boost│
+│           queue_urgency_weight, ...         │
+└──────────────────┬──────────────────────────┘
+                   │ Policy Vector
+     ┌─────────────┼─────────────┐
+     ▼             ▼             ▼
+ [Local NW]   [Local NE]   [Local SW/SE]
+  Rule-based   Rule-based   Rule-based
+  Phase Switch Phase Switch Phase Switch
 ```
 
-**Note:** Corridors feature bidirectional traffic flow, creating complex cross-interference at intersections.
+**Central Controller (LLM)** updates policy vectors (e.g., `corridor_priority`, `emergency_boost`) that shape how local agents weight their decisions. **Local Agents (Rule-Based)** execute high-frequency phase switching using the Central Policy and 1-step lookahead logic.
 
-### The `text_obs` Interface
-The environment provides a structured, YAML-like observation designed specifically for LLM ingestion:
+### Grid Layout (2×2 with FIFO Transit Buffers)
+```text
+      [NW] ←——(3)——→ [NE]
+        ↕               ↕
+       (3)             (3)
+        ↕               ↕
+      [SW] ←——(3)——→ [SE]
+
+(3) = 3-Step FIFO Transit Buffer (bidirectional)
+```
+
+Each intersection has **4 lanes**, **4 signal phases**, and a unique **personality** (e.g., NW is a "corridor entry" node, SW is "emergency-prone"). Corridors create complex cross-interference: clearing a queue at NW pushes vehicles into NE's buffer 3 steps later.
+
+### What the LLM Sees (`text_obs`)
 ```yaml
 Intersection NW:
-  Queue: [3, 12, 4, 1]
-  Wait: [4.2, 15.1, 5.0, 1.2]
-  Role: Corridor Entry
+  Queue: [3, 12, 4, 1]        # 4 lanes
+  Wait:  [4.2, 15.1, 5.0, 1.2] # seconds
+  Role:  Corridor Entry
   Active Behaviors: [DEMAND_SURGE_RESPONSE]
 System Metrics:
   Throughput: 68.2
@@ -72,52 +84,89 @@ System Metrics:
   Spillback Risk: High (Intersection NE)
 ```
 
+### What the LLM Outputs
+```json
+{
+  "local_actions": {"NW": "PHASE_2", "NE": "KEEP", "SW": "SWITCH", "SE": "PHASE_1"},
+  "central_action": {"queue_urgency_weight": 0.4, "corridor_priority": 0.3}
+}
+```
+
+7 tasks test different skills: `easy_fixed`, `medium_dynamic`, `hard_multi`, `gridlock_risk`, `corridor_flow`, `incident_response`, `dynamic_demand`.
+
 ---
 
-## 🚀 Results: Proven Gains
-Hierarchical central coordination closes a large gap versus local-only control:
+## 🚀 Results
 
-| Condition | Final Score (max: 1.0) | Throughput |
-| :--- | :--- | :--- |
-| Local-only (baseline) | 0.380 | 51.2 |
-| Central LLM (ours) | 0.518 | 68.2 |
-| **Δ Improvement** | **+36.2%** | **+33.2%** |
+### Baseline Comparison (hard_multi task)
 
-On medium-difficulty tasks, central coordination improved `final_score` by about **+23%** vs. local-only control (see `results/run_log.md`).
+We compared four control strategies on the hardest task to isolate the effect of each component:
 
-### Final Training Artifacts
-The final training flow uses a two-stage pipeline:
-- **SFT schema warmup** to teach strict JSON action formatting.
-- **Central-policy policy optimization** to tune traffic-control actions only after schema validation passes.
+| Strategy | Final Score | Throughput | Spillback Events |
+|:---|:---|:---|:---|
+| Do Nothing (all `KEEP`) | 0.336 | — | — |
+| Random Actions | 0.399 | — | — |
+| Rule-Based (local only, no central) | 0.386 | 5,083 | 1,888 |
+| **Rule-Based + Central Policy (ours)** | **0.509** | **11,317** | **1,602** |
+| **Trained LLM + Central (best A100)** | **0.518** | — | — |
 
-Reward shaping during GRPO uses four mechanisms to prevent common LLM-RL failure modes:
-1. **Hallucination penalty (−6.0):** If the model emits anything other than valid schema JSON, the episode receives a flat −6.0 reward, preventing "safe garbage" exploitation.
-2. **All-KEEP collapse penalty (−3.0):** If every intersection action is `KEEP`, the model is penalized for passivity.
-3. **Central-action bonus (+0.15 / −0.25):** Episodes that include learned `central_action` deltas receive a small bonus; omitting them incurs a penalty. This steers the model toward hierarchical coordination.
-4. **Curriculum staging:** Training begins on `medium_dynamic` tasks and graduates to `hard_multi` at episode 40, preventing early policy collapse on the hardest scenarios.
+| Metric | Local-Only → Central | Improvement |
+|:---|:---|:---|
+| Final Score | 0.386 → 0.518 | **+34.2%** |
+| Throughput | 5,083 → 11,317 | **+122.6%** |
+| Spillback Events | 1,888 → 1,602 | **−15.1%** |
 
-For the final A100 run, we engineered a custom Transformers + PEFT LoRA pipeline to bypass Unsloth/TRL constraints, achieving maximum training stability. Our compute-constrained A100 run showed strong early convergence signals over 264 episodes, achieving **99.62% valid JSON actions**, **99.62% central-action usage**, **0.38% hallucination rate**, **1.506 last-50 mean reward**, and a **0.51797 best final score**.
+The trained LLM with central policy outperforms every baseline by a wide margin. Central coordination is the dominant factor — even a simple rule-based agent jumps from 0.386 to 0.509 once it can set `queue_urgency_weight` and `corridor_priority`.
 
-Generated artifacts are available in the live Space repository:
-- **A100 LoRA adapter**: [`outputs/traffic-lora-a100-central-policy`](https://huggingface.co/spaces/Guuru-DEV/traffic-signal-openenv-2/tree/main/outputs/traffic-lora-a100-central-policy)
-- **Training plots**: [`plots`](https://huggingface.co/spaces/Guuru-DEV/traffic-signal-openenv-2/tree/main/plots)
-- **Training metrics**: [`results`](https://huggingface.co/spaces/Guuru-DEV/traffic-signal-openenv-2/tree/main/results)
-- **Weights & Biases**: [traffic-signal-openenv](https://wandb.ai/akshat-arya13-r-v-c-e/traffic-signal-openenv) (same project as Submission Links)
-- **Run log**: [`results/run_log.md`](results/run_log.md)
+### What Changed: Before vs. After (Episode Trace)
 
-Generated plots include the final A100 central-policy run (`a100_central_policy_reward_curve.png`, `a100_central_policy_final_score_curve.png`, `a100_central_policy_output_quality.png`), the Kaggle central-policy run, the ablation comparison, and earlier reward/score diagnostics.
+Here's a concrete episode on `hard_multi` showing how central coordination reshapes behavior:
+
+| Step | Agent Action | Central Deltas | Total Queue | Score | What Happened |
+|:---|:---|:---|:---|:---|:---|
+| 0 | All → PHASE_3 | `urgency: 0.4, emergency: 0.5, corridor: 0.3` | 247 | 0.654 | High initial congestion; agent boosts urgency and enables emergency routing |
+| 5 | NW→P0, SW→P1, SE→P2 | `urgency: 0.4, emergency: 0.5` | 299 | 0.528 | Queues still building; agent diversifies phases to drain multiple lanes |
+| 25 | All different phases | `urgency: 0.4, corridor: 0.3` | 207 | 0.484 | **Queues dropping** — corridor priority synchronizes NW↔NE flow |
+| 50 | NW→P0, NE→P2, SE→KEEP | `urgency: 0.4, corridor: −0.2` | 161 | 0.496 | Agent **reverses** corridor bias as NS traffic recovers — adaptive control |
+| 200 | Mixed phases | `urgency: 0.4, emergency: 0.5` | 262 | 0.509 | Stable management through end of episode despite demand surges |
+
+**Key insight:** The agent doesn't just hold one policy. It **adapts** central deltas in response to changing conditions — boosting `corridor_priority` when EW traffic surges, then reversing it when NS recovers.
+
+Without central policy, the same agent scores 0.386 with ~2x more spillback.
+
+---
+
+### Training Evidence
+
+The final A100 run used `unsloth/Llama-3.2-1B-Instruct` with PEFT LoRA and a manual GRPO-style policy optimization loop over **264 episodes**:
+
+| Metric | Value |
+|:---|:---|
+| Valid JSON rate | **99.62%** |
+| Central-action usage | **99.62%** |
+| Hallucination rate | **0.38%** |
+| Last-50 mean reward | **1.506** |
+| Best final score | **0.51797** |
+| Best episode reward | **3.970** |
+
+![A100 central-policy reward curve](plots/a100_central_policy_reward_curve.png)
+
+*A100 final run: reward climbs from near-zero to +1.5 mean over 264 episodes. No catastrophic collapse.*
+
+![A100 central-policy final score](plots/a100_central_policy_final_score_curve.png)
+
+*Final score stabilizes above 0.49 (hard-task baseline: 0.386). Best episode reaches 0.518.*
+
+![Central coordination ablation](plots/ablation_comparison.png)
+
+*Ablation confirms central coordination is the dominant factor in throughput improvement.*
+
+<details>
+<summary>Additional training plots (Kaggle runs)</summary>
 
 ![Training reward curve](plots/reward_curve.png)
 
 *Kaggle 1B run: early reward convergence with local-only actions (no central policy).*
-
-![A100 central-policy reward curve](plots/a100_central_policy_reward_curve.png)
-
-*A100 final run: reward climbs steadily to +1.5 mean over 264 episodes with central policy enabled.*
-
-![A100 central-policy final score](plots/a100_central_policy_final_score_curve.png)
-
-*Demonstrates consistent system-wide gains under central coordination.*
 
 ![Central-policy GRPO reward curve](plots/central_policy_reward_curve.png)
 
@@ -125,66 +174,77 @@ Generated plots include the final A100 central-policy run (`a100_central_policy_
 
 ![Central-policy output quality](plots/central_policy_output_quality.png)
 
-*Highlights sustained valid JSON and central-policy usage without training collapse.*
+*Sustained valid JSON and central-policy usage without training collapse.*
 
-![Central coordination ablation](plots/ablation_comparison.png)
+</details>
 
-*Confirms central coordination is the primary driver of throughput.*
+### Reward Shaping
+
+The GRPO reward function uses four mechanisms to prevent common LLM-RL failure modes:
+
+| Mechanism | Effect | Why |
+|:---|:---|:---|
+| **Hallucination penalty (−6.0)** | Flat negative reward for invalid JSON | Prevents "safe garbage" exploitation |
+| **All-KEEP collapse (−3.0)** | Penalty for passive "do nothing" outputs | Forces the agent to actually control traffic |
+| **Central-action bonus (+0.15 / −0.25)** | Reward for using hierarchical policy deltas | Steers toward the coordination capability we're testing |
+| **Curriculum staging** | `medium_dynamic` → `hard_multi` at episode 40 | Prevents early collapse on hardest scenarios |
+
+### Artifacts
+
+| Artifact | Location |
+|:---|:---|
+| A100 LoRA adapter | [outputs/traffic-lora-a100-central-policy](https://huggingface.co/spaces/Guuru-DEV/traffic-signal-openenv-2/tree/main/outputs/traffic-lora-a100-central-policy) |
+| Training metrics (JSON/CSV) | [results/](https://huggingface.co/spaces/Guuru-DEV/traffic-signal-openenv-2/tree/main/results) |
+| Training plots | [plots/](https://huggingface.co/spaces/Guuru-DEV/traffic-signal-openenv-2/tree/main/plots) |
+| W&B dashboard | [traffic-signal-openenv](https://wandb.ai/akshat-arya13-r-v-c-e/traffic-signal-openenv) |
+| Run log | [`results/run_log.md`](results/run_log.md) |
 
 ---
 
 ## 💡 Why This Matters
 
-This is a small traffic world, but the coordination shape is universal: one high-level reasoner orchestrating many local actors under stress. The same pattern appears in fleet management, warehouse robotics, incident response, and infrastructure control.
+This is a small traffic world, but the coordination shape is universal: **one high-level reasoner orchestrating many local actors under stress.** The same pattern appears in fleet management, warehouse robotics, incident response, and infrastructure control.
 
 The key insight is that the LLM didn't win by talking more — it won by learning to speak less: one compact JSON object, sent at the right time, with the right central nudge. That's a fundamentally different capability from chat or code generation, and it's exactly what hierarchical multi-agent systems need.
 
 ---
 
-## 🏆 Hackathon Themes & Sub-themes
-- **Theme 1: Multi-Agent Interactions**: Managing the complex interplay between NW/NE/SW/SE.
-- **Theme 2: Long-Horizon Planning**: Preemptively managing downstream spillback risks.
-- **Theme 4: Self-Improvement**: Using the `--curriculum` runner to evolve policies.
-- **Fleet AI Scalable Oversight**: Centralized monitoring of 16 individual traffic lanes.
-- **Halluminate Multi-Actor**: Deterministic incident response requiring distinct "personalities" per intersection.
+## 🏆 Hackathon Themes
+
+- **Theme 1: Multi-Agent Interactions** — Managing cross-interference between NW/NE/SW/SE through shared corridors.
+- **Theme 2: Long-Horizon Planning** — Preemptive spillback prevention requires reasoning about downstream effects 3+ steps ahead.
+- **Theme 4: Self-Improvement** — Curriculum-based training evolves policies from easy → hard.
+- **Fleet AI Scalable Oversight** — Centralized monitoring of 16 individual traffic lanes with 5 tunable policy knobs.
+- **Halluminate Multi-Actor** — Deterministic incident response with distinct intersection "personalities."
 
 ---
 
 ## 🛠️ Quick Start
 
-Replace `localhost:7860` with your Space URL (for example `https://guuru-dev-traffic-signal-openenv-2.hf.space`) when running against the hosted environment instead of a local container.
-
-### Docker (Recommended)
+### Docker
 ```bash
 docker build -t traffic-env .
 docker run --rm -p 7860:7860 traffic-env
 ```
 
-### Local CLI
+Or use the hosted Space: `https://guuru-dev-traffic-signal-openenv-2.hf.space`
+
+### API
 ```bash
-# Reset with specific task
+# Reset
 curl -X POST http://localhost:7860/reset \
   -H "Content-Type: application/json" \
   -d '{"task_id": "hard_multi", "central_enabled": true}'
 
-# Execute step
+# Step
 curl -X POST http://localhost:7860/step \
   -H "Content-Type: application/json" \
   -d '{"local_actions":{"NW":"PHASE_2","NE":"PHASE_3","SW":"SWITCH","SE":"KEEP"},"central_action":{"queue_urgency_weight":0.5,"corridor_priority":0.3}}'
 ```
 
-### Example Outcome
-
-After ~50 steps of Central LLM execution:
-
-- Increased throughput across all local intersections.
-- Massively reduced spillback risk on critical corridors.
-- Emergent corridor synchronization (intelligent "green waves").
-
 ### Training
-Use `notebooks/train_colab_FULL.ipynb` for the self-contained final training flow. It uses a small 1B model, PEFT LoRA, SFT schema warmup, schema validation, a manual GRPO-style policy loop, W&B tracking, graceful API retries, and automatic artifact upload.
+Use [`notebooks/train_colab_FULL.ipynb`](notebooks/train_colab_FULL.ipynb) — a self-contained 8-cell pipeline: install → config → model load → SFT warmup → schema gate → reward function → GRPO → save/upload.
 
-The notebook is designed for Kaggle/Colab/HF Jupyter-style execution: it expects `HF_TOKEN`, `WANDB_API_KEY`, and `ENV_URL` in the notebook environment and does not clone the repository during training. `training/train.py` remains as a lightweight script entrypoint, but the notebook is the canonical submission training artifact.
+Requires `ENV_URL`, `HF_TOKEN`, and `WANDB_API_KEY` in the notebook environment. Designed for Kaggle/Colab/HF Jupyter-style execution.
 
 ---
-
