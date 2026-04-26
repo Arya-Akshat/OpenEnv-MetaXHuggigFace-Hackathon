@@ -151,22 +151,7 @@ class HistoryBuffer:
     switches: list[dict[str, int]] = field(default_factory=list)
     policy_vectors: list[dict[str, float]] = field(default_factory=list)
 
-    def add(
-        self,
-        queues: dict[str, list[float]],
-        waits: dict[str, list[float]],
-        throughputs: dict[str, float],
-        switches: dict[str, int],
-        policy: dict[str, float],
-    ) -> None:
-        self.queues.append(queues)
-        self.waits.append(waits)
-        self.throughputs.append(throughputs)
-        if hasattr(self, 'lane_throughputs'):
-            # This is a bit of a hack to handle the new field in existing objects if any
-            # But in this env it should be fine as it's recreated on reset
-            pass
-        
+
     def add(
         self,
         queues: dict[str, list[float]],

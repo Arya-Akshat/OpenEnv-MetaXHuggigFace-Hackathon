@@ -109,11 +109,11 @@ Generated plots include the final A100 central-policy run (`a100_central_policy_
 
 ![Training reward curve](plots/reward_curve.png)
 
-*Shows stable RL policy improvement with no catastrophic collapse.*
+*Kaggle 1B run: early reward convergence with local-only actions (no central policy).*
 
 ![A100 central-policy reward curve](plots/a100_central_policy_reward_curve.png)
 
-*Shows stable RL policy improvement with no catastrophic collapse.*
+*A100 final run: reward climbs steadily to +1.5 mean over 264 episodes with central policy enabled.*
 
 ![A100 central-policy final score](plots/a100_central_policy_final_score_curve.png)
 
@@ -121,7 +121,7 @@ Generated plots include the final A100 central-policy run (`a100_central_policy_
 
 ![Central-policy GRPO reward curve](plots/central_policy_reward_curve.png)
 
-*Shows stable RL policy improvement with no catastrophic collapse.*
+*Kaggle central-policy run: partial 640-episode trace showing non-flat rewards and stable learning.*
 
 ![Central-policy output quality](plots/central_policy_output_quality.png)
 
@@ -130,6 +130,14 @@ Generated plots include the final A100 central-policy run (`a100_central_policy_
 ![Central coordination ablation](plots/ablation_comparison.png)
 
 *Confirms central coordination is the primary driver of throughput.*
+
+---
+
+## 💡 Why This Matters
+
+This is a small traffic world, but the coordination shape is universal: one high-level reasoner orchestrating many local actors under stress. The same pattern appears in fleet management, warehouse robotics, incident response, and infrastructure control.
+
+The key insight is that the LLM didn't win by talking more — it won by learning to speak less: one compact JSON object, sent at the right time, with the right central nudge. That's a fundamentally different capability from chat or code generation, and it's exactly what hierarchical multi-agent systems need.
 
 ---
 
