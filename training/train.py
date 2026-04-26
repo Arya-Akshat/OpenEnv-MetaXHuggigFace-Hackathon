@@ -34,6 +34,16 @@ DEFAULT_ENV_URL = "https://guuru-dev-traffic-signal-openenv-2.hf.space"
 ENV_URL = DEFAULT_ENV_URL
 MODEL_NAME = "unsloth/Llama-3.2-1B-Instruct"
 GLOBAL_EPISODE = 0
+VALID_ACTIONS = {"KEEP", "SWITCH", "PHASE_0", "PHASE_1", "PHASE_2", "PHASE_3"}
+LOCAL_KEY_ALIASES = {"localactions", "localaction", "local", "actions", "action"}
+CENTRAL_KEY_ALIASES = {"centralaction", "centralactions", "central", "policy"}
+CENTRAL_POLICY_KEYS = {
+    "switch_penalty",
+    "queue_urgency_weight",
+    "emergency_boost",
+    "corridor_priority",
+    "balance_penalty",
+}
 
 
 def find_local_env_port() -> str:
@@ -66,18 +76,61 @@ def safe_post(url: str, payload: dict[str, Any], retries: int = 16, timeout: int
     raise RuntimeError(f"Failed after {retries} retries: {url}")
 
 
+def _alias_key(key: Any) -> str:
+    return re.sub(r"[^a-z0-9]", "", str(key).lower())
+
+
+def normalize_action_obj(obj: Any) -> dict[str, Any] | None:
+    if not isinstance(obj, dict):
+        return None
+
+    local = None
+    central = {}
+    for key, value in obj.items():
+        alias = _alias_key(key)
+        if alias in LOCAL_KEY_ALIASES:
+            local = value
+        elif alias in CENTRAL_KEY_ALIASES:
+            central = value
+
+    if not isinstance(local, dict):
+        return None
+    clean_central: dict[str, float] = {}
+    if isinstance(central, dict):
+        for key, value in central.items():
+            if key not in CENTRAL_POLICY_KEYS:
+                return None
+            try:
+                clean_central[key] = max(-0.5, min(0.8, float(value)))
+            except (TypeError, ValueError):
+                return None
+    elif central not in ({}, None):
+        return None
+
+    clean_local: dict[str, str] = {}
+    for direction in ("NW", "NE", "SW", "SE"):
+        raw_value = None
+        for key, value in local.items():
+            if str(key).upper().strip() == direction:
+                raw_value = value
+                break
+        if raw_value is None:
+            return None
+        action = str(raw_value).upper().strip()
+        if action not in VALID_ACTIONS:
+            return None
+        clean_local[direction] = action
+
+    return {"local_actions": clean_local, "central_action": clean_central}
+
+
 def parse_action(completion: str) -> tuple[dict[str, Any], bool]:
-    valid = {"KEEP", "SWITCH", "PHASE_0", "PHASE_1", "PHASE_2", "PHASE_3"}
     base = {"NW": "KEEP", "NE": "KEEP", "SW": "KEEP", "SE": "KEEP"}
     try:
         action = json.loads(completion)
-        if isinstance(action, dict):
-            raw_local = action.get("local_actions", {})
-            clean_local: dict[str, str] = {}
-            for key in ("NW", "NE", "SW", "SE"):
-                raw_val = str(raw_local.get(key, "KEEP")).upper().strip() if isinstance(raw_local, dict) else "KEEP"
-                clean_local[key] = raw_val if raw_val in valid else "KEEP"
-            return {"local_actions": clean_local, "central_action": {}}, False
+        normalized = normalize_action_obj(action)
+        if normalized is not None:
+            return normalized, False
     except Exception:
         pass
 
@@ -85,8 +138,9 @@ def parse_action(completion: str) -> tuple[dict[str, Any], bool]:
         match = re.search(r"\{.*\}", completion, re.DOTALL)
         if match:
             action = json.loads(match.group())
-            if isinstance(action, dict):
-                return parse_action(json.dumps(action))
+            normalized = normalize_action_obj(action)
+            if normalized is not None:
+                return normalized, False
     except Exception:
         pass
 

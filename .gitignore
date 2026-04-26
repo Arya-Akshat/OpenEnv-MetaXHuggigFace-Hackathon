@@ -27,6 +27,13 @@ build/
 
 test_output.txt
 results_*.txt
+outputs/
+results/
+!results/
+!results/*.md
+!results/*.json
+!results/*.csv
+!results/*.txt
 
 .vscode/
 .idea/

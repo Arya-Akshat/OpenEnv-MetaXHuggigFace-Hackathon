@@ -85,11 +85,34 @@ def generate_training_plots(training_log: list[dict[str, Any]], output_dir: str)
     os.makedirs(output_dir, exist_ok=True)
     
     episodes = np.arange(len(training_log))
-    rewards = np.array([float(s.get("episode_reward", 0.0)) for s in training_log])
-    scores = np.array([float(s.get("final_score", 0.0)) for s in training_log])
+    def as_float(value: Any, default: float = 0.0) -> float:
+        if value is None:
+            return default
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            return default
+
+    def as_optional_float(value: Any) -> float:
+        if value is None:
+            return np.nan
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            return np.nan
+
+    rewards = np.array([as_float(s.get("episode_reward", 0.0)) for s in training_log])
+    scores = np.array([as_optional_float(s.get("final_score")) for s in training_log])
     
     def smooth(data, window=5):
-        if len(data) < window: return data
+        if len(data) < window:
+            return data
+        if np.isnan(data).any():
+            smoothed = []
+            for idx in range(len(data) - window + 1):
+                chunk = data[idx:idx + window]
+                smoothed.append(np.nan if np.all(np.isnan(chunk)) else np.nanmean(chunk))
+            return np.array(smoothed)
         return np.convolve(data, np.ones(window)/window, mode='valid')
 
     # 1. Reward Curve
@@ -156,7 +179,7 @@ def generate_training_plots(training_log: list[dict[str, Any]], output_dir: str)
         if not breakdown: # Fallback for aggregate summaries
             breakdown = {k: s.get(k, 0.0) for k in comp_keys}
         for k in comp_keys:
-            data[k].append(float(breakdown.get(k, 0.0)))
+            data[k].append(as_float(breakdown.get(k, 0.0)))
 
     ep_subset = episodes if len(episodes) < 50 else episodes[::len(episodes)//20]
     for k in comp_keys:

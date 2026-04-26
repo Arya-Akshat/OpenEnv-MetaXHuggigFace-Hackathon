@@ -16,6 +16,8 @@ Traffic Signal OpenEnv is a high-fidelity, hierarchical traffic-light orchestrat
 
 Live deployment: [Hugging Face Space](https://guuru-dev-traffic-signal-openenv-2.hf.space)
 
+Writeup: [`blog.md`](blog.md)
+
 ---
 
 ## 🚦 The Problem: The Hidden Cost of Uncoordinated Flow
@@ -75,8 +77,15 @@ The final training flow uses a two-stage pipeline:
 Generated artifacts are available in the live Space repository:
 - **LoRA adapter**: [`outputs/traffic-lora`](https://huggingface.co/spaces/Guuru-DEV/traffic-signal-openenv-2/tree/main/outputs/traffic-lora)
 - **Training plots**: [`plots`](https://huggingface.co/spaces/Guuru-DEV/traffic-signal-openenv-2/tree/main/plots)
+- **Training metrics**: [`results`](https://huggingface.co/spaces/Guuru-DEV/traffic-signal-openenv-2/tree/main/results)
+- **W&B project**: [traffic-signal-openenv](https://wandb.ai/akshat-arya13-r-v-c-e/traffic-signal-openenv)
+- **Run log**: [`results/run_log.md`](results/run_log.md)
 
 Generated plots include `ablation_comparison.png`, `reward_breakdown.png`, `final_score_curve.png`, and `reward_curve.png`.
+
+![Training reward curve](plots/reward_curve.png)
+
+![Central coordination ablation](plots/ablation_comparison.png)
 
 ---
 
@@ -112,6 +121,8 @@ curl -X POST http://localhost:7860/step \
 
 ### Training
 Use `notebooks/train_colab_FULL.ipynb` for the full SFT + GRPO run, or `training/train.py` for the script-based training entrypoint.
+
+The full notebook is self-contained for Kaggle/Colab-style execution: it expects `HF_TOKEN`, `WANDB_API_KEY`, and `ENV_URL` in the notebook environment and does not clone the repository during training.
 
 ---
 

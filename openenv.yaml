@@ -28,10 +28,10 @@ action_space:
       type: dict
       values:
         type: Box
-        low: 0.0
-        high: 2.0
-        shape: [6]
-        keys: [corridor_priority, balance_penalty, emergency_boost, switch_penalty, queue_urgency_weight, green_extension]
+        low: -0.5
+        high: 0.8
+        shape: [5]
+        keys: [switch_penalty, queue_urgency_weight, emergency_boost, corridor_priority, balance_penalty]
 
 endpoints:
   reset: /reset
