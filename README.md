@@ -90,6 +90,12 @@ The final training flow uses a two-stage pipeline:
 - **SFT schema warmup** to teach strict JSON action formatting.
 - **Central-policy policy optimization** to tune traffic-control actions only after schema validation passes.
 
+Reward shaping during GRPO uses four mechanisms to prevent common LLM-RL failure modes:
+1. **Hallucination penalty (−6.0):** If the model emits anything other than valid schema JSON, the episode receives a flat −6.0 reward, preventing "safe garbage" exploitation.
+2. **All-KEEP collapse penalty (−3.0):** If every intersection action is `KEEP`, the model is penalized for passivity.
+3. **Central-action bonus (+0.15 / −0.25):** Episodes that include learned `central_action` deltas receive a small bonus; omitting them incurs a penalty. This steers the model toward hierarchical coordination.
+4. **Curriculum staging:** Training begins on `medium_dynamic` tasks and graduates to `hard_multi` at episode 40, preventing early policy collapse on the hardest scenarios.
+
 For the final A100 run, we engineered a custom Transformers + PEFT LoRA pipeline to bypass Unsloth/TRL constraints, achieving maximum training stability. Our compute-constrained A100 run showed strong early convergence signals over 264 episodes, achieving **99.62% valid JSON actions**, **99.62% central-action usage**, **0.38% hallucination rate**, **1.506 last-50 mean reward**, and a **0.51797 best final score**.
 
 Generated artifacts are available in the live Space repository:
