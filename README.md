@@ -138,9 +138,7 @@ Without central policy, the same agent scores 0.386 with ~2x more spillback.
 
 ### Training Evidence
 
-The final A100 run used `unsloth/Llama-3.2-1B-Instruct` with PEFT LoRA and a manual GRPO-style policy optimization loop over **264 episodes**.
-
-> **Note:** Training episodes use 30-step rollouts (`MAX_ENV_STEPS=30`) for compute efficiency on A100. Baseline comparison scores above are from full 200-step episodes. The 30-step training signal captures early-episode behavior and policy responsiveness; final scores from short rollouts correlate with but slightly differ from full-episode scores.
+The final A100 run used `unsloth/Llama-3.2-1B-Instruct` with PEFT LoRA and a manual GRPO-style policy optimization loop over **264 episodes**:
 
 | Metric | Value |
 |:---|:---|
