@@ -75,7 +75,7 @@ System Metrics:
 ---
 
 ## 🚀 Results: Proven Gains
-Through our **11-Phase Refactor** of the benchmark simulator (phase markers in [`env/traffic_env.py`](env/traffic_env.py); writeup in [`blog.md`](blog.md); runs and metrics in [`results/run_log.md`](results/run_log.md)), we achieved a massive performance gap demonstrating the power of hierarchical oversight:
+Hierarchical central coordination closes a large gap versus local-only control:
 
 | Condition | Final Score (max: 1.0) | Throughput |
 | :--- | :--- | :--- |
