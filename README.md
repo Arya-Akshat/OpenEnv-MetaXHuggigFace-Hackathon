@@ -81,9 +81,13 @@ Generated artifacts are available in the live Space repository:
 - **W&B project**: [traffic-signal-openenv](https://wandb.ai/akshat-arya13-r-v-c-e/traffic-signal-openenv)
 - **Run log**: [`results/run_log.md`](results/run_log.md)
 
-Generated plots include `ablation_comparison.png`, `reward_breakdown.png`, `final_score_curve.png`, and `reward_curve.png`.
+Generated plots include the central-policy run (`central_policy_reward_curve.png`, `central_policy_final_score_curve.png`, `central_policy_output_quality.png`), the ablation comparison, and earlier reward/score diagnostics.
 
 ![Training reward curve](plots/reward_curve.png)
+
+![Central-policy GRPO reward curve](plots/central_policy_reward_curve.png)
+
+![Central-policy output quality](plots/central_policy_output_quality.png)
 
 ![Central coordination ablation](plots/ablation_comparison.png)
 

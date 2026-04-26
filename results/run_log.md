@@ -23,7 +23,7 @@ This file tracks real training attempts and generated evidence for the hackathon
 
 ### Central-Policy GRPO Preparation
 
-- Status: configured, ready for next Kaggle run.
+- Status: completed as a partial Kaggle 1B run and uploaded to the Hugging Face Space.
 - Schema now allows bounded central policy deltas:
   - `switch_penalty`
   - `queue_urgency_weight`
@@ -32,11 +32,24 @@ This file tracks real training attempts and generated evidence for the hackathon
   - `balance_penalty`
 - Deltas are clipped to `[-0.5, 0.8]` before being sent to the environment.
 - GRPO prompts now use chat templates directly, matching the SFT format.
+- Central-policy SFT warmup reached strong schema fit (`8/8` validation samples were valid and included `central_action`).
+- Partial GRPO run produced 640 episode records before interruption.
+- Generated evidence:
+  - `plots/central_policy_reward_curve.png`
+  - `plots/central_policy_final_score_curve.png`
+  - `plots/central_policy_output_quality.png`
+  - `results/training_metrics_partial_central_policy.json`
+  - `results/training_metrics_partial_central_policy.csv`
+- Readout:
+  - central policy keys were used consistently,
+  - output validity was usually high after parser recovery,
+  - reward was non-flat and often positive later in the run,
+  - hard-task final score did not yet beat the hard baseline reliably on the 1B run.
 
 ### Planned A100 Run
 
 - Status: pending.
-- Goal: after central-policy behavior is stable on the 1B model, run the same pipeline on a larger model using an A100-backed Hugging Face Job.
+- Goal: run the same central-policy pipeline on a larger model using an A100-backed Hugging Face Job.
 - Success criteria:
   - high schema-valid completion rate,
   - non-flat reward distribution,
