@@ -18,7 +18,7 @@ pinned: false
 | Resource | Link |
 |:---|:---|
 | **Live Environment** | [guuru-dev-traffic-signal-openenv-2.hf.space](https://guuru-dev-traffic-signal-openenv-2.hf.space) |
-| **HF Space Repo** | [Guuru-DEV/traffic-signal-openenv-2](https://huggingface.co/spaces/Guuru-DEV/traffic-signal-openenv-2) |
+| **HF Space Repo** | [Guuru-DEV/traffic-signal-openenv-2](https://huggingface.co/spaces/Guuru-DEV/traffic-signal-openenv-2/tree/main) |
 | **GitHub** | [Arya-Akshat/OpenEnv-MetaXHuggingFace-Hackathon](https://github.com/Arya-Akshat/OpenEnv-MetaXHuggigFace-Hackathon) |
 | **Training Notebook** | [`notebooks/train_colab_FULL.ipynb`](notebooks/train_colab_FULL.ipynb) |
 | **Writeup / Blog** | [`blog.md`](blog.md) |

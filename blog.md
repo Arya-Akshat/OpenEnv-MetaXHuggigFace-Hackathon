@@ -98,7 +98,7 @@ The fun part is that the model learned something genuinely interesting: **adapti
 |:---|:---|
 | W&B (training runs) | https://wandb.ai/akshat-arya13-r-v-c-e/traffic-signal-openenv |
 | Live Space | https://guuru-dev-traffic-signal-openenv-2.hf.space |
-| HF Space Repo | https://huggingface.co/spaces/Guuru-DEV/traffic-signal-openenv-2 |
+| HF Space Repo | https://huggingface.co/spaces/Guuru-DEV/traffic-signal-openenv-2/tree/main |
 | GitHub | [OpenEnv-MetaXHuggingFace-Hackathon](https://github.com/Arya-Akshat/OpenEnv-MetaXHuggigFace-Hackathon) |
 | Training Notebook | [`notebooks/train_colab_FULL.ipynb`](notebooks/train_colab_FULL.ipynb) |
 | Run Log | [`results/run_log.md`](results/run_log.md) |
