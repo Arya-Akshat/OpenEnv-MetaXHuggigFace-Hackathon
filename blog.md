@@ -1,48 +1,45 @@
-# Taming Urban Chaos With Hierarchical LLM Control
+# Taming Urban Chaos With a Tiny LLM
 
-Urban traffic is a deceptively hard multi-agent coordination problem. A single intersection can be managed with a local rule, but a grid needs longer-horizon reasoning: downstream spillback, corridor formation, emergency routing, phase stability, and fairness across approaches all interact.
+Traffic looks simple until four intersections start arguing with each other. One green light clears a queue, but it can also flood the next junction. A local rule can be smart for one corner and still create gridlock for the whole block.
 
-Traffic Signal OpenEnv turns that problem into a deterministic LLM training environment. The agent sees a structured text observation with queue lengths, wait times, corridor pressure, incident state, and system-level metrics. It acts through a hierarchical action space: local intersection decisions plus optional central policy deltas that steer global behavior.
+Traffic Signal OpenEnv turns that problem into a deterministic LLM environment. The model reads a compact text observation with queues, waits, corridor pressure, incidents, and system metrics. Then it returns one JSON action: local phase choices for `NW`, `NE`, `SW`, and `SE`, plus small central-policy deltas such as `queue_urgency_weight` and `corridor_priority`.
 
-## What The Agent Learns
+## The Trick
 
-The environment is designed to teach a model something more interesting than one-step action selection. It must coordinate four intersections while avoiding reward hacks like oscillatory switching, all-KEEP collapse, or unsafe priority boosts.
+We did not chase a huge model. We used a 1B instruct model and treated training like systems debugging.
 
-The reward signal is intentionally composable. It combines local efficiency, global coordination, throughput, emergency response, stability, and fairness. This gives the model dense feedback during training while still preserving an episode-level final score for judging whether the policy actually improves traffic flow.
+The first RL attempts failed in very LLM ways: prose instead of JSON, malformed keys, repeated `KEEP`, and reward-looking behavior that did not always improve traffic. The stable recipe was:
 
-## Training Setup
+1. Teach the JSON schema first with supervised fine-tuning.
+2. Gate RL on schema validation.
+3. Penalize hallucinations, all-KEEP collapse, and invalid actions.
+4. Let the model tune both local actions and central policy deltas.
+5. Track every run with W&B, CSV/JSON metrics, plots, and a human run log.
 
-The training pipeline uses Unsloth and Hugging Face TRL.
+On A100, the fastest Unsloth/TRL path hit runtime dtype and dependency issues, so the final run used standard Transformers + PEFT LoRA with a manual GRPO-style loop. That was the right trade: smaller model, cleaner control, better evidence.
 
-We found that direct GRPO was unstable at first: the 1B model often generated prose, malformed JSON, or repeated degenerate actions. The stable recipe became:
+## What We Got
 
-1. Supervised fine-tuning warmup to teach the strict traffic-action JSON schema.
-2. Schema validation before RL starts.
-3. GRPO against the live OpenEnv traffic API, using the same chat-template prompting as SFT.
-4. Strict parsing, action sanitization, hallucination penalties, and all-KEEP penalties.
-5. W&B monitoring plus saved JSON/CSV metrics and plots.
+The final A100 run recorded 264 environment episodes:
 
-This is real environment training, not a static dataset. Each GRPO reward call resets or steps the deployed Hugging Face Space environment and records reward, final score, queue metrics, validity, hallucination rate, and policy behavior.
+- `99.62%` valid JSON actions
+- `99.62%` central-action usage
+- `0.38%` hallucination rate
+- `1.506` last-50 mean reward
+- `0.51797` best hard-task final score
 
-## Results So Far
-
-The central-coordination ablation shows the core environment claim clearly:
-
-- Medium task: about 23% final-score improvement with central coordination enabled.
-- Hard multi-task: about 36% final-score improvement with central coordination enabled.
-
-The first stable 1B training runs also showed the practical lesson: schema grounding is mandatory before RL. Once SFT and chat-template GRPO were aligned, completions became compact, valid JSON with non-flat rewards and meaningful score variation.
-
-The next step is central-policy training, where the model learns not only local phase actions but also safe central policy deltas such as `queue_urgency_weight`, `corridor_priority`, `balance_penalty`, `emergency_boost`, and `switch_penalty`.
+The broader environment ablation also supports the central-control idea: central coordination improved medium-task final score by about `23%` and hard multi-task score by about `36.2%`.
 
 ## Why It Matters
 
-This environment targets scalable oversight: one high-level reasoning model coordinating many local actors under stress. The same pattern appears in fleets, logistics, incident response, robotics, and infrastructure control.
+This is a small traffic world, but the shape is familiar: one high-level reasoner coordinating many local actors under stress. The same pattern shows up in fleets, warehouses, incident response, robotics, and infrastructure control.
 
-Traffic is familiar enough to understand quickly, but rich enough to expose whether an LLM can actually reason over a changing multi-agent system.
+The fun part is that the model did not win by talking more. It won by learning to speak less: one compact JSON object, sent at the right time, with the right central nudge.
 
 Links:
 
-- Live Space: https://guuru-dev-traffic-signal-openenv-2.hf.space
+- Live environment Space: https://guuru-dev-traffic-signal-openenv-2.hf.space
 - Space repository and artifacts: https://huggingface.co/spaces/Guuru-DEV/traffic-signal-openenv-2
+- GitHub repository: https://github.com/Arya-Akshat/OpenEnv-MetaXHuggigFace-Hackathon
 - Training notebook: `notebooks/train_colab_FULL.ipynb`
+- Run log: `results/run_log.md`

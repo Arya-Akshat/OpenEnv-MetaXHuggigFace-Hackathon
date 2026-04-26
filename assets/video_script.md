@@ -10,11 +10,11 @@
 
 **[00:40 - 01:10] The Evidence**
 *(Visual: Split screen showing 'Central OFF' vs 'Central ON'. The ON side is flowing smoothly, OFF is red with queues.)*
-"The results are clear. In our ablation study, Central Oversight improved hard-task performance by a massive 36.2%. It doesn't just respond to traffic—it anticipates it, throttling upstream flow to prevent downstream blockages before they happen."
+"The results are clear. In our ablation study, Central Oversight improved hard-task performance by 36.2%. Then we trained a 1B controller with schema warmup and LoRA: 99.62% valid JSON actions, 99.62% central-action usage, and a 0.51797 best hard-task final score."
 
 **[01:10 - 01:30] Call to Action**
 *(Visual: Reward curve from `plots/reward_curve.png` and the HF logo)*
-"Built with Unsloth and OpenEnv, our benchmark is a playground for Multi-Agent interactions and long-horizon planning. Explore our tasks, run the curriculum, and help us build the next generation of scalable urban oversight."
+"Built for OpenEnv, this benchmark is a playground for multi-agent interaction, reward design, and long-horizon planning. Explore the Space, inspect the notebook, and help us build the next generation of scalable urban oversight."
 
 **[01:30] End**
-*(Visual: Project Name and GitHub URL)*
+*(Visual: Project Name, GitHub URL, Hugging Face Space URL)*

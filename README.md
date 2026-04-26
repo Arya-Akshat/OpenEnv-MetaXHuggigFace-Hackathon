@@ -14,9 +14,15 @@ pinned: false
 
 Traffic Signal OpenEnv is a high-fidelity, hierarchical traffic-light orchestration platform. It is designed to test an LLM's ability to act as a **Central Controller**, managing grid-level policy vectors to optimize flow across multiple local agents.
 
-Live deployment: [Hugging Face Space](https://guuru-dev-traffic-signal-openenv-2.hf.space)
+## Submission Links
 
-Writeup: [`blog.md`](blog.md)
+- **Live environment Space**: [guuru-dev-traffic-signal-openenv-2.hf.space](https://guuru-dev-traffic-signal-openenv-2.hf.space)
+- **Space repository and artifacts**: [Guuru-DEV/traffic-signal-openenv-2](https://huggingface.co/spaces/Guuru-DEV/traffic-signal-openenv-2)
+- **GitHub repository**: [Arya-Akshat/OpenEnv-MetaXHuggigFace-Hackathon](https://github.com/Arya-Akshat/OpenEnv-MetaXHuggigFace-Hackathon)
+- **Canonical training notebook**: [`notebooks/train_colab_FULL.ipynb`](notebooks/train_colab_FULL.ipynb)
+- **Writeup**: [`blog.md`](blog.md)
+- **Run log**: [`results/run_log.md`](results/run_log.md)
+- **W&B project**: [traffic-signal-openenv](https://wandb.ai/akshat-arya13-r-v-c-e/traffic-signal-openenv)
 
 ---
 
@@ -121,18 +127,18 @@ docker run --rm -p 7860:7860 traffic-env
 # Reset with specific task
 curl -X POST http://localhost:7860/reset \
   -H "Content-Type: application/json" \
-  -d '{"task_id": "hard_multi"}'
+  -d '{"task_id": "hard_multi", "central_enabled": true}'
 
 # Execute step
 curl -X POST http://localhost:7860/step \
   -H "Content-Type: application/json" \
-  -d '{"action": "PHASE_0"}'
+  -d '{"local_actions":{"NW":"PHASE_2","NE":"PHASE_3","SW":"SWITCH","SE":"KEEP"},"central_action":{"queue_urgency_weight":0.5,"corridor_priority":0.3}}'
 ```
 
 ### Training
-Use `notebooks/train_colab_FULL.ipynb` for the full SFT + GRPO run, or `training/train.py` for the script-based training entrypoint.
+Use `notebooks/train_colab_FULL.ipynb` for the self-contained final training flow. It uses a small 1B model, PEFT LoRA, SFT schema warmup, schema validation, a manual GRPO-style policy loop, W&B tracking, graceful API retries, and automatic artifact upload.
 
-The full notebook is self-contained for Kaggle/Colab-style execution: it expects `HF_TOKEN`, `WANDB_API_KEY`, and `ENV_URL` in the notebook environment and does not clone the repository during training.
+The notebook is designed for Kaggle/Colab/HF Jupyter-style execution: it expects `HF_TOKEN`, `WANDB_API_KEY`, and `ENV_URL` in the notebook environment and does not clone the repository during training. `training/train.py` remains as a lightweight script entrypoint, but the notebook is the canonical submission training artifact.
 
 ---
 

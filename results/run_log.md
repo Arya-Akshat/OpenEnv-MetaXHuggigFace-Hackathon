@@ -69,3 +69,18 @@ This file tracks real training attempts and generated evidence for the hackathon
   - `results/training_metrics_a100_central_policy.json`
   - `results/training_metrics_a100_central_policy.csv`
 - Adapter uploaded to the Space at `outputs/traffic-lora-a100-central-policy`.
+
+### A100 Final-Score V2 Probe
+
+- Status: stopped and discarded.
+- Run name: `openenv-a100-central-policy-v2-finalscore-1777186023`.
+- Goal: continue from the A100 adapter with stronger final-score shaping.
+- Result: the probe preserved valid JSON and central-action usage, but did not beat the final A100 run's `0.51797` best final score.
+- Decision: keep the original A100 run as the final model/artifact.
+
+### Deterministic Policy Sweep Probe
+
+- Status: stopped and not committed as final evidence.
+- Goal: replay the best learned action families with a small central-delta grid to see if deterministic policy search could beat the trained model's best final score.
+- Result: early focused candidates scored well below the A100 model evidence, so the sweep was stopped to protect submission time.
+- Decision: no deterministic sweep result replaces the final A100 trained model.
