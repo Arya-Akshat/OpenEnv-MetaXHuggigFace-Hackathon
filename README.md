@@ -75,9 +75,9 @@ System Metrics:
 ---
 
 ## 🚀 Results: Proven Gains
-Through our **11-Phase Refactor**, we achieved a massive performance gap demonstrating the power of hierarchical oversight:
+Through our **11-Phase Refactor** (see [`blog.md`](blog.md) for the full refactor history), we achieved a massive performance gap demonstrating the power of hierarchical oversight:
 
-| Condition | Final Score | Throughput |
+| Condition | Final Score (max: 1.0) | Throughput |
 | :--- | :--- | :--- |
 | Local-only (baseline) | 0.380 | 51.2 |
 | Central LLM (ours) | 0.518 | 68.2 |
@@ -137,6 +137,8 @@ Generated plots include the final A100 central-policy run (`a100_central_policy_
 ---
 
 ## 🛠️ Quick Start
+
+Replace `localhost:7860` with your Space URL (for example `https://guuru-dev-traffic-signal-openenv-2.hf.space`) when running against the hosted environment instead of a local container.
 
 ### Docker (Recommended)
 ```bash
